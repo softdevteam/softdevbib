@@ -24,7 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys
+import sys, re
 from bibtexparser.bparser import BibTexParser
 
 # Stuff that we don't want to see in the bibtex file (per-class)
@@ -38,12 +38,18 @@ EXCLUDE_MAP = {
     "incollection"  : ["abstract", "location", "publisher"],
 }
 
+# Warn if fields match a regex
+REGEX_WARNINGS = {
+    "booktitle" : [".*Proc\.", ".*Proceedings"],
+    "author" : [".*[Ee]dward [Bb]arrett"] # Prefer "Edd"
+}
+
 def usage():
     print("usage: prebib.py <infile>")
     sys.exit(1)
 
 def format_entry(bclass, key, data):
-    """ throws out a nicely formatted bibtex entry """
+    """ Throws out a nicely formatted bibtex entry """
     s = "@%s{%s,\n" % (bclass, key)
 
     for (k, v) in data.items():
@@ -52,6 +58,8 @@ def format_entry(bclass, key, data):
     return s + "}\n"
 
 def process(infile):
+    """ Process a file by name """
+
     # parse the bibtex file in
     with open(infile, "r") as f: psr = BibTexParser(f)
     entries = psr.get_entry_list()
@@ -63,6 +71,7 @@ def process(infile):
     print("\n".join(entries_str))
 
 def msg(msg, fatal=False):
+    """ Display a warning or error """
     if not fatal:
         sys.stderr.write("***warn: %s\n" % msg)
     else:
@@ -70,6 +79,19 @@ def msg(msg, fatal=False):
 
     sys.stderr.flush()
     if fatal: sys.exit(1)
+
+def regex_warn(key, data):
+    """ Warn about common error that can be detected by regex """
+    for (f, v) in data.items():
+        try:
+            regexes = REGEX_WARNINGS[f]
+        except KeyError:
+            continue # no regexes to test
+
+        for r in regexes:
+            if re.match(r, v):
+                msg("Entry '%s': '%s={%s}'\n  fires a naughty regex '%s'" % \
+                        (key, f, v, r))
 
 def process_entry(entry):
     bclass = entry.pop("type")
@@ -83,6 +105,7 @@ def process_entry(entry):
 
     # filter out junk we don't want
     filtered_data = { k : v for (k, v) in entry.items() if k not in excludes }
+    regex_warn(key, filtered_data)
     return (bclass, key, filtered_data)
 
 if __name__ == "__main__":
