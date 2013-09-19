@@ -24,7 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys, re
+import sys, re, io
 from bibtexparser.bparser import BibTexParser
 
 # Stuff that we don't want to see in the bibtex file (per-class)
@@ -61,7 +61,12 @@ def process(infile):
     """ Process a file by name """
 
     # parse the bibtex file in
-    with open(infile, "r") as f: psr = BibTexParser(f)
+    in_str = ""
+    with open(infile, "r") as f:
+        for line in f:
+            if not line.startswith("#"): in_str += line
+
+    psr = BibTexParser(io.StringIO(in_str))
     entries = psr.get_entry_list()
     new_entries = [ process_entry(x) for x in entries ]
 
