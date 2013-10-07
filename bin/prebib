@@ -24,7 +24,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys, re, io
+import os, sys, re, io
+sys.path.append(os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], "..", "lib/python"))
 
 from bparser import BibTexParser
 
