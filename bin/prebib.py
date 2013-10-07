@@ -26,7 +26,7 @@
 
 import sys, re, io
 
-import yapbib.biblist as biblist
+from bibtexparser.bparser import BibTexParser
 
 # Stuff that we don't want to see in the bibtex file (per-class)
 # In the future we may allow the user to adjust this by command line
@@ -49,18 +49,12 @@ def usage():
     print("usage: prebib.py <infile>")
     sys.exit(1)
 
-def encode(st):
-    """
-    The bibtex parser undoes escaping, so we have to put it back.
-    This kinda sucks...
-    """
-    for (k, v) in unicode_to_crappy_latex1.items(): # yes, i know...
-        st = st.replace(k, v)
-
-    return st
-
-def format_entry(bclass, key, data):
+def format_entry(data):
     """ Throws out a nicely formatted bibtex entry """
+
+    bclass = data.pop("type")
+    key = data.pop("id")
+
     s = "@%s{%s,\n" % (bclass, key)
 
     for (k, v) in data.items():
@@ -70,18 +64,15 @@ def format_entry(bclass, key, data):
 
 def process(infile):
     """ Process a file by name """
-    b=biblist.BibList()
-    b.import_bibtex(infile) # XXX comments etc..
 
-    entries = b.get_items()
+    print(infile)
+    with open(infile, 'r') as fh: b = BibTexParser(fh)
+    entries = b.get_entry_list()
     new_entries = [ process_entry(x) for x in entries ]
 
-    # stuff the items back into a new biblist
-    biblist2 = biblist.BibList()
-    for e in new_entries: biblist2.add_item(e)
-
     # chuck to stdout
-    biblist2.export_bibtex()
+    entries_strs = [ format_entry(e) for e in new_entries ]
+    print("\n".join(entries_strs))
 
 def msg(msg, fatal=False):
     """ Display a warning or error """
@@ -111,8 +102,8 @@ def regex_warn(key, data):
                         (key, f, v, r))
 
 def process_entry(entry):
-    bclass = entry["_type"]
-    key = entry["_code"]
+    bclass = entry["type"]
+    key = entry["id"]
 
     try:
         excludes = EXCLUDE_MAP[bclass]
