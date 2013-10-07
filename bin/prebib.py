@@ -65,7 +65,6 @@ def format_entry(data):
 def process(infile):
     """ Process a file by name """
 
-    print(infile)
     with open(infile, 'r') as fh: b = BibTexParser(fh)
     entries = b.get_entry_list()
     new_entries = [ process_entry(x) for x in entries ]
