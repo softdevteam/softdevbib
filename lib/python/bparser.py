@@ -1,26 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#This program is free software: you can redistribute it and/or modify
-#it under the terms of the GNU Affero General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU Affero General Public License for more details.
-#You should have received a copy of the GNU Affero General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 # Original source: github.com/okfn/bibserver
 # Authors:
 # markmacgillivray
 # Etienne Posthumus (epoz)
 # Francois Boulogne <fboulogne at april dot org>
+# License: LGPLv3
 
-import io
+import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['BibTexParser']
+
+
+if sys.version_info >= (3, 0):
+    from io import StringIO
+    ustr = str
+else:
+    from StringIO import StringIO
+    ustr = unicode
 
 
 class BibTexParser(object):
@@ -52,7 +53,7 @@ class BibTexParser(object):
         # Some files have Byte-order marks inserted at the start
         if data[:3] == '\xef\xbb\xbf':
             data = data[3:]
-        self.fileobj = io.StringIO(data)
+        self.fileobj = StringIO(data)
 
         # set which bibjson schema this parser parses to
         self.has_metadata = False
@@ -73,11 +74,12 @@ class BibTexParser(object):
         }
 
         self.records = self._parse_records(customization=customization)
+        self.entries_hash = {}
 
     def get_entry_list(self):
         """Get a list of bibtex entries.
 
-        :retuns: list -- entries
+        :returns: list -- entries
         """
         return self.records
 
@@ -85,12 +87,13 @@ class BibTexParser(object):
         """Get a dictionnary of bibtex entries.
         The dict key is the bibtex entry key
 
-        :retuns: dict -- entries
+        :returns: dict -- entries
         """
-        entries_hash = {}
-        for entry in self.records:
-            entries_hash[entry['id']] = entry
-        return entries_hash
+        # If the hash has never been made, make it
+        if not self.entries_hash:
+            for entry in self.records:
+                self.entries_hash[entry['id']] = entry
+        return self.entries_hash
 
     def _parse_records(self, customization=None):
         """Parse the bibtex into a list of records.
@@ -98,27 +101,43 @@ class BibTexParser(object):
         :param customization: a function
         :returns: list -- records
         """
+        def _add_parsed_record(record, records):
+            """
+            Atomic function to parse a record
+            and append the result in records
+            """
+            if record != "":
+                logger.debug('The record is not empty. Let\'s parse it.')
+                parsed = self._parse_record(record, customization=customization)
+                if parsed:
+                    logger.debug('Store the result of the parsed record')
+                    records.append(parsed)
+                else:
+                    logger.debug('Nothing returned from the parsed record!')
+            else:
+                logger.debug('The record is empty')
+
         records = []
         record = ""
         # read each line, bundle them up until they form an object, then send for parsing
-        for line in self.fileobj:
+        for linenumber, line in enumerate(self.fileobj):
+            logger.debug('Inspect line %s', linenumber)
             if '--BREAK--' in line:
+                logger.debug('--BREAK-- encountered')
                 break
             else:
                 if line.strip().startswith('@'):
-                    if record != "":
-                        parsed = self._parse_record(record, customization=customization)
-                        if parsed:
-                            records.append(parsed)
+                    logger.debug('Line starts with @')
+                    _add_parsed_record(record, records)
+                    logger.debug('The record is set to empty')
                     record = ""
                 if len(line.strip()) > 0:
+                    logger.debug('The line is not empty, add it to record')
                     record += line
 
         # catch any remaining record and send it for parsing
-        if record != "":
-            parsed = self._parse_record(record, customization=customization)
-            if parsed:
-                records.append(parsed)
+        _add_parsed_record(record, records)
+        logger.debug('Return the result')
         return records
 
     def _parse_record(self, record, customization=None):
@@ -136,7 +155,8 @@ class BibTexParser(object):
         d = {}
 
         if not record.startswith('@'):
-            return d
+            logger.debug('The record does not start with @. Return empty dict.')
+            return {}
 
         # prepare record
         record = '\n'.join([i.strip() for i in record.split('\n')])
@@ -145,46 +165,60 @@ class BibTexParser(object):
 
         # if a string record, put it in the replace_dict
         if record.lower().startswith('@string'):
+            logger.debug('The record startswith @string')
             key, val = [i.strip().strip('"').strip('{').strip('}').replace('\n', ' ') for i in record.split('{', 1)[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
+            logger.debug('Return a dict')
             return d
 
         # for each line in record
+        logger.debug('Split the record of its lines and treat them')
         kvs = [i.strip() for i in record.split(',\n')]
         inkey = ""
         inval = ""
         for kv in kvs:
+            logger.debug('Inspect: %s', kv)
             if kv.startswith('@') and not inkey:
                 # it is the start of the record - set the bibtype and citekey (id)
+                logger.debug('Line starts with @ and the key is not stored yet.')
                 bibtype, id = kv.split('{', 1)
                 bibtype = self._add_key(bibtype)
                 id = id.strip('}').strip(',')
             elif '=' in kv and not inkey:
                 # it is a line with a key value pair on it
+                logger.debug('Line contains a key-pair value and the key is not stored yet.')
                 key, val = [i.strip() for i in kv.split('=', 1)]
                 key = self._add_key(key)
                 # if it looks like the value spans lines, store details for next loop
-                if (val.startswith('{') and not val.endswith('}')) or (val.startswith('"') and not val.replace('}', '').endswith('"')):
+                if (val.count('{') != val.count('}')) or (val.startswith('"') and not val.replace('}', '').endswith('"')):
+                    logger.debug('The line is not ending the record.')
                     inkey = key
                     inval = val
                 else:
+                    logger.debug('The line is the end of the record.')
                     d[key] = self._add_val(val)
             elif inkey:
+                logger.debug('Continues the previous line to complete the key pair value...')
                 # if this line continues the value from a previous line, append
-                inval += ',' + kv
+                inval += ', ' + kv
                 # if it looks like this line finishes the value, store it and clear for next loop
                 if (inval.startswith('{') and inval.endswith('}')) or (inval.startswith('"') and inval.endswith('"')):
+                    logger.debug('This line represents the end of the current key-pair value')
                     d[inkey] = self._add_val(inval)
                     inkey = ""
                     inval = ""
+                else:
+                    logger.debug('This line does NOT represent the end of the current key-pair value')
+
+        logger.debug('All lines have been treated')
+        if not d:
+            logger.debug('The dict is empty, return it.')
+            return d
 
         # put author names into persons list
         if 'author_data' in d:
             self.persons = [i for i in d['author_data'].split('\n')]
             del d['author_data']
-
-        if not d:
-            return d
 
         d['type'] = bibtype
         d['id'] = id
@@ -193,9 +227,11 @@ class BibTexParser(object):
                 self.has_metadata = True
 
         if customization is None:
+            logger.debug('No customization to apply, return dict')
             return d
         else:
             # apply any customizations to the record object then return it
+            logger.debug('Apply customizations and return dict')
             return customization(d)
 
     def _strip_quotes(self, val):
@@ -234,8 +270,8 @@ class BibTexParser(object):
         for k in list(self.replace_dict.keys()):
             if val == k:
                 val = self.replace_dict[k]
-        if not isinstance(val, str):
-            val = str(val, self.encoding, 'ignore')
+        if not isinstance(val, ustr):
+            val = ustr(val, self.encoding, 'ignore')
 
         return val
 
@@ -264,7 +300,7 @@ class BibTexParser(object):
         key = key.strip().strip('@').lower()
         if key in list(self.alt_dict.keys()):
             key = self.alt_dict[key]
-        if not isinstance(key, str):
-            return str(key, 'utf-8')
+        if not isinstance(key, ustr):
+            return ustr(key, 'utf-8')
         else:
             return key
