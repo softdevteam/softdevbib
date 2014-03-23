@@ -36,8 +36,8 @@ EXCLUDE_MAP = {
     "book"          : ["isbn", "issn", "abstract", "location", "doi"],
     "article"       : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
     "techreport"    : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
-    "inproceedings" : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
-    "incollection"  : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "inproceedings" : ["series", "isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "incollection"  : ["series", "isbn", "issn", "abstract", "location", "publisher", "doi"],
 }
 
 # Warn if fields match a regex
