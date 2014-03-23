@@ -33,11 +33,11 @@ from bparser import BibTexParser
 # In the future we may allow the user to adjust this by command line
 # flags. But let's cross that bridge when we encounter it.
 EXCLUDE_MAP = {
-    "book"          : ["abstract", "location", "doi"],
-    "article"       : ["abstract", "location", "publisher", "doi"],
-    "techreport"    : ["abstract", "location", "publisher", "doi"],
-    "inproceedings" : ["abstract", "location", "publisher", "doi"],
-    "incollection"  : ["abstract", "location", "publisher", "doi"],
+    "book"          : ["isbn", "issn", "abstract", "location", "doi"],
+    "article"       : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "techreport"    : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "inproceedings" : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "incollection"  : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
 }
 
 # Warn if fields match a regex
