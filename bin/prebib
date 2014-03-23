@@ -29,15 +29,17 @@ sys.path.append(os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], "..
 
 from bparser import BibTexParser
 
+ALWAYS_EXCLUDE = ["isbn", "issn", "abstract", "location", "doi" ]
+
 # Stuff that we don't want to see in the bibtex file (per-class)
 # In the future we may allow the user to adjust this by command line
 # flags. But let's cross that bridge when we encounter it.
 EXCLUDE_MAP = {
-    "book"          : ["isbn", "issn", "abstract", "location", "doi"],
-    "article"       : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
-    "techreport"    : ["isbn", "issn", "abstract", "location", "publisher", "doi"],
-    "inproceedings" : ["series", "isbn", "issn", "abstract", "location", "publisher", "doi"],
-    "incollection"  : ["series", "isbn", "issn", "abstract", "location", "publisher", "doi"],
+    "book"          : ALWAYS_EXCLUDE,
+    "article"       : ALWAYS_EXCLUDE + ["publisher"],
+    "techreport"    : ALWAYS_EXCLUDE + ["publisher"],
+    "inproceedings" : ALWAYS_EXCLUDE + ["series", "publisher"],
+    "incollection"  : ALWAYS_EXCLUDE + ["series", "publisher"],
 }
 
 # Warn if fields match a regex
