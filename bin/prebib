@@ -48,6 +48,19 @@ REGEX_WARNINGS = {
     "author" : [".*[Ee]dward [Bb]arrett"] # Prefer "Edd"
 }
 
+ALWAYS_WARN_IF_MISSING = [ "year", "author", "title" ]
+
+WARN_IF_MISSING_MAP = {
+        "inproceedings" : ALWAYS_WARN_IF_MISSING + ["month"],
+        "proceedings"   : ALWAYS_WARN_IF_MISSING + ["month"],
+        "article"       : ALWAYS_WARN_IF_MISSING + ["month"],
+        "phdthesis"     : ALWAYS_WARN_IF_MISSING + ["month"],
+        "incollection"  : ALWAYS_WARN_IF_MISSING + ["month"],
+        "techreport"    : ALWAYS_WARN_IF_MISSING + ["month"],
+        "mastersthesis" : ALWAYS_WARN_IF_MISSING + ["month"],
+        "book"          : ALWAYS_WARN_IF_MISSING,
+        }
+
 def usage():
     print("usage: prebib <infile.bib>")
     sys.exit(1)
@@ -104,6 +117,19 @@ def regex_warn(key, data):
                 msg("Entry '%s': '%s={%s}'\n  fires a naughty regex '%s'" % \
                         (key, f, v, r))
 
+def missing_warn(bclass, key, data):
+    try:
+        warn_missing_entry = WARN_IF_MISSING_MAP[bclass]
+    except KeyError:
+        msg("Bibtex class '%s' is missing a WARN_IF_MISSING" % bclass)
+        warn_missing_entry = []
+
+    warn_missing = [ k for
+            k in warn_missing_entry if k not in data.keys() ]
+
+    for i in warn_missing:
+        msg("Entry '%s' is missing a '%s' field" % (key, i))
+
 def process_entry(entry):
     bclass = entry["type"]
     key = entry["id"]
@@ -116,7 +142,10 @@ def process_entry(entry):
 
     # filter out junk we don't want
     filtered_data = { k : v for (k, v) in entry.items() if k not in excludes }
+
     regex_warn(key, filtered_data)
+    missing_warn(bclass, key, filtered_data)
+
     return filtered_data
 
 if __name__ == "__main__":
