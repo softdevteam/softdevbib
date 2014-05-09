@@ -137,7 +137,7 @@ def process_entry(entry):
     try:
         excludes = EXCLUDE_MAP[bclass]
     except KeyError:
-        msg("undefined excludes for bibtex class '%s'" % (bclass))
+        msg("undefined EXCLUDE_MAP enrty for bibtex class '%s'" % (bclass))
         excludes = [] # exclude nothing
 
     # filter out junk we don't want
