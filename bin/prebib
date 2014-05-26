@@ -29,7 +29,7 @@ sys.path.append(os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], "..
 
 from bparser import BibTexParser
 
-ALWAYS_EXCLUDE = ["isbn", "issn", "abstract", "location", "doi" ]
+ALWAYS_EXCLUDE = ["isbn", "issn", "abstract", "location", "doi", "address", "organization"]
 
 # Stuff that we don't want to see in the bibtex file (per-class)
 # In the future we may allow the user to adjust this by command line
