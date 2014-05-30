@@ -38,6 +38,8 @@ EXCLUDE_MAP = {
     "book"          : ALWAYS_EXCLUDE,
     "article"       : ALWAYS_EXCLUDE + ["publisher"],
     "techreport"    : ALWAYS_EXCLUDE + ["publisher"],
+    "mastersthesis" : ALWAYS_EXCLUDE + ["publisher"],
+    "phdthesis"     : ALWAYS_EXCLUDE + ["publisher"],
     "inproceedings" : ALWAYS_EXCLUDE + ["series", "publisher"],
     "incollection"  : ALWAYS_EXCLUDE + ["series", "publisher"],
 }
