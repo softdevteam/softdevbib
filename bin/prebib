@@ -44,7 +44,7 @@ EXCLUDE_MAP = {
 
 # Warn if fields match a regex
 REGEX_WARNINGS = {
-    "booktitle" : [".*Proc\.", ".*Proceedings"],
+    "booktitle" : [".*Proc"],
     "author" : [".*[Ee]dward [Bb]arrett"] # Prefer "Edd"
 }
 
