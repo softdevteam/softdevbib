@@ -165,8 +165,10 @@ class PreBib:
         key = data.pop("id")
         s = "@%s{%s,\n" % (bclass, key)
         for (k, v) in data.items():
-            s += "    %s = {%s},\n" % (k, v)
-
+            if k == "month" and v != "":
+                s += "    %s = %s,\n" % (k, v)
+            else:
+                s += "    %s = {%s},\n" % (k, v)
         return s + "}\n"
 
 def usage():
