@@ -47,7 +47,11 @@ EXCLUDE_MAP = {
 
 # Warn if fields match a regex
 REGEX_WARNINGS = {
-    "booktitle" : [".*Proc"],
+    "booktitle" : [
+        # The idiom "Proceedings of ..." etc. waste precious space.
+        # Authors should just list the title of the conference/workshop.
+        ".*[Pp]roc\.", ".*[Pp]roceedings", ".*[Ww]orkshop"
+    ],
     "author" : [".*[Ee]dward [Bb]arrett"] # Prefer "Edd"
 }
 
