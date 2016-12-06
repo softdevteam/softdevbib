@@ -71,6 +71,10 @@ WARN_IF_MISSING_MAP = {
 
 BAD_MONTH_QUOTE_REGEX = re.compile(r'\s*month\s*=\s*([{"].*["}]).*$')
 
+# Acceptable month strings. Not empty value included for special circumstances.
+OK_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
+             "Sep", "Oct", "Nov", "Dec", ""]
+
 
 class PreBib:
     def __init__(self, extra_excludes):
@@ -132,6 +136,10 @@ class PreBib:
         filtered_data = { k : v for (k, v) in entry.items() if k not in excludes }
         self.regex_warn(key, filtered_data)
         self.missing_warn(bclass, key, filtered_data)
+
+        if "month" in entry and entry["month"] not in OK_MONTHS:
+                self.msg("Unknown month string: '%s'" % entry["month"])
+
         return filtered_data
 
     def regex_warn(self, key, data):
