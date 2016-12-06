@@ -1,0 +1,18 @@
+================================================================================
+  softdevbib
+================================================================================
+
+This repository contains a curated .bib file of BibTeX entries for the research
+field(s) of interest to the Software Development Team <http://soft-dev.org>.
+There is by definition no original work in this, so the .bib file is in
+the public domain.
+
+To help us maintain a high-quality .bib file, this repository also includes an
+(optional) utility called prebib. This has two purposes: as a linter for .bib
+files (i.e. to spot obvious errors and/or common style mistakes); and as a way
+of excluding entries. prebib automatically excludes some entries which tend to
+lead to excessive bibliography entries. You can add extra exclusions with the
+"-x" switch. For example, if you need a bibliography which excludes months
+execute "prebib -x month softdevbib.bib > bib.bib". Please check prebib's
+license, as well as the license of the libraries it uses which, for convenience,
+we've included in this repository.
