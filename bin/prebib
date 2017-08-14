@@ -45,6 +45,7 @@ EXCLUDE_MAP = {
     "inproceedings" : ALWAYS_EXCLUDE + ["series", "publisher"],
     "incollection"  : ALWAYS_EXCLUDE + ["series", "publisher"],
     "misc"          : ALWAYS_EXCLUDE,
+    "manual"        : ALWAYS_EXCLUDE,
 }
 
 # Warn if fields match a regex
@@ -69,6 +70,9 @@ WARN_IF_MISSING_MAP = {
         "mastersthesis" : ALWAYS_WARN_IF_MISSING + ["month"],
         "book"          : ALWAYS_WARN_IF_MISSING,
         "misc"          : ALWAYS_WARN_IF_MISSING,
+        # For manual, you may have an organisation instead of an author
+        "manual"        : list(filter(lambda x: x != "author",
+                                      ALWAYS_WARN_IF_MISSING)),
         }
 
 BAD_MONTH_QUOTE_REGEX = re.compile(r'\s*month\s*=\s*([{"].*["}]).*$')
