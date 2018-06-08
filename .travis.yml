@@ -1,6 +1,9 @@
 sudo: required
 language: python
 
+cache:
+  apt: true
+
 python:
     - "3.5"
 
