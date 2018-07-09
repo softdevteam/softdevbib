@@ -168,7 +168,8 @@ class PreBib:
             warn_missing_entry = []
 
         warn_missing = [ k for
-                k in warn_missing_entry if k not in data.keys() ]
+                        k in warn_missing_entry if k not in data.keys()
+                        and k not in self.extra_excludes]
         for i in warn_missing:
             self.msg("Entry '%s' is missing a '%s' field" % (key, i))
 
