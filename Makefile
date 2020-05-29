@@ -5,7 +5,7 @@
 all: clean check
 
 check:
-	python3.5 ./bin/prebib softdev.bib > out.bib
+	python3 ./bin/prebib softdev.bib > out.bib
 	pdflatex check
 	bibtex check
 	pdflatex check
