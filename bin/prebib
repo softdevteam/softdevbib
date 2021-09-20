@@ -55,7 +55,8 @@ REGEX_WARNINGS = {
         # Authors should just list the title of the conference/workshop.
         ".*[Pp]roc\.", ".*[Pp]roceedings", ".*[Ww]orkshop"
     ],
-    "author" : [".*[Ee]dward [Bb]arrett"] # Prefer "Edd"
+    "author" : [".*[Ee]dward [Bb]arrett"], # Prefer "Edd"
+    "id": [r"^\w+\d\d\d\d"], # Years in keys should be in two-digit format.
 }
 
 ALWAYS_WARN_IF_MISSING = [ "year", "author", "title" ]
@@ -149,7 +150,8 @@ class PreBib:
         return filtered_data
 
     def regex_warn(self, key, data):
-        """ Warn about common error that can be detected by regex """
+        """ Warn about common errors that can be detected by regex """
+
         for (f, v) in data.items():
             if f == "author": # library splits authors
                 v = u"and".join([ u" ".join(x) for x in v])
