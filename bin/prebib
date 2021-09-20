@@ -149,7 +149,7 @@ class PreBib:
         return filtered_data
 
     def regex_warn(self, key, data):
-        """ Warn about common error that can be detected by regex """
+        """ Warn about common errors that can be detected by regex """
         for (f, v) in data.items():
             if f == "author": # library splits authors
                 v = u"and".join([ u" ".join(x) for x in v])
